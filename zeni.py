@@ -75,7 +75,7 @@ async def alive_command(client, message):
 
 # ---------------- RUN BOT ----------------
 if __name__ == "__main__":
-    zeni.run()    )
+   zeni.run()
 
     try:
         await zeni.send_message(chat_id=LOG_CHANNEL_ID, text=log_message)
