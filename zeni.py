@@ -87,7 +87,6 @@ async def alive_conv(client, message):
 if __name__ == "__main__":
     if seconds > 0:
     uptime_parts.append(f"{seconds}s")
-
 formatted_uptime = ' '.join(uptime_parts)
 
 if message.from_user.id == OWNER_ID:
