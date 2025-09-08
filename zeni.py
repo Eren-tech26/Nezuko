@@ -1,105 +1,81 @@
 import os
 import logging
-import asyncio
 from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import ChatAdminRequired, FloodWait
-from config import API_HASH, API_ID, BOT_TOKEN, UPDATE_CHANNEL, SOURCE, OWNER_ID, LOG_CHANNEL_ID
+from config import API_HASH, API_ID, BOT_TOKEN, UPDATE_CHANNEL, SOURCE
 from datetime import timedelta
+import asyncio
 
+# Logging config
 logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
+OWNER_ID = 6356050482  # Your Owner ID here
+
 zeni = Client(
-    "banall",
+    "zeni",
     api_id=API_ID,
     api_hash=API_HASH,
-    bot_token=BOT_TOKEN,
+    bot_token=BOT_TOKEN
 )
 
-
-async def is_on_off(status_code):
-    return status_code == 2
-    
-
+# ---------------- START COMMAND ----------------
 @zeni.on_message(filters.command("start") & filters.private)
-async def start_command(client, message: Message):
-    for i in range(4):
-        temp_message = await message.reply_text("sᴛᴀʀᴛɪɴɢ" + "." * i)
-        await asyncio.sleep(0.5)  
-        await temp_message.delete()
-
+async def start_command(client, message):
+    buttons = [
+        [InlineKeyboardButton("ᴏᴡɴᴇʀ", url="https://t.me/yourusername")],
+        [InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇꜱ", url=f"https://t.me/{UPDATE_CHANNEL}")],
+        [InlineKeyboardButton("ꜱᴏᴜʀᴄᴇ", url=f"https://t.me/{SOURCE}")]
+    ]
     await message.reply_text(
-        text=f"ʏᴏᴏ {message.from_user.mention} ✨\n\nɪ'ᴍ [Mᴜᴢᴀɴ Sʟᴀʏᴇʀ 🔥](https://files.catbox.moe/patnta.mp4)\n\nᴀ ᴘʏʀᴏɡʀᴀᴍ-ʙᴀsᴇᴅ ʙᴏᴛ ᴘʀᴏɢʀᴀᴍᴍᴇᴅ ᴛᴏ ʙᴀɴ ᴏʀ ᴡɪᴘᴇ ᴏᴜᴛ ᴀʟʟ ᴍᴇᴍʙᴇʀs ғʀᴏᴍ ᴀ ɢʀᴏᴜᴘ ɪɴ ᴊᴜsᴛ ᴀ ғᴇᴡ sᴇᴄᴏɴᴅs.\n──────────────────\nɢʀᴀɴᴛ ᴍᴇ ᴜɴʀᴇsᴛʀɪᴄᴛᴇᴅ ᴀᴄᴄᴇss ᴛᴏ ᴛᴇsᴛ ᴍʏ ᴄᴀᴘᴀʙɪʟɪᴇs.",
-        reply_markup=InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("ᴏᴡɴᴇʀ", user_id=OWNER_ID)
-                ],
-                [
-                    InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇ", url=UPDATE_CHANNEL),
-                    InlineKeyboardButton("ʀᴇᴘᴏ", url=SOURCE)
-                ]
-            ]
-        )
+        "ʜᴇʏ! ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ᴢᴇɴɪ ʙᴏᴛ!",
+        reply_markup=InlineKeyboardMarkup(buttons)
     )
-    if await is_on_off(2):
-        await zeni.send_message(
-          chat_id=LOG_CHANNEL_ID,
-            text=f"<b>ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ʙʏ {message.from_user.mention}.</b>\n\n<b>‣ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>‣ ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}"
-        )
-    
 
+# ---------------- BAN ALL COMMAND ----------------
 @zeni.on_message(filters.command("banall") & filters.group)
-async def banall_command(client, message: Message):
-    print("ɢᴇᴛᴛɪɴɢ ᴍᴇᴍʙᴇʀs ғʀᴏᴍ {}".format(message.chat.id))
-    banned_count = 0
-    destroyed_count = 0  # Counter for destroyed groups
-
-    chat_title = message.chat.title
-    chat_username = f"@{message.chat.username}" if message.chat.username else "N/A"
+async def banall_command(client, message):
     chat_id = message.chat.id
+    chat_title = message.chat.title
+    banned_count = 0
 
-    total_members = await zeni.get_chat_members_count(chat_id)
+    try:
+        members = await zeni.get_chat_members(chat_id)
+        for member in members:
+            try:
+                await zeni.ban_chat_member(chat_id, member.user.id)
+                banned_count += 1
+            except ChatAdminRequired:
+                await message.reply_text("I need admin rights to ban members!")
+                return
+            except FloodWait as e:
+                await asyncio.sleep(e.value)
+    except Exception as e:
+        print(f"Error banning: {e}")
 
-    async for member in zeni.get_chat_members(chat_id):
-        try:
-            await zeni.ban_chat_member(chat_id=chat_id, user_id=member.user.id)
-            banned_count += 1
-        except ChatAdminRequired:
-            await message.reply_text("ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʙᴀɴ ᴍᴇᴍʙᴇʀs.")
-            return  # Exit if admin rights are required
-        except FloodWait as e:
-            print(f"ғʟᴏᴏᴅ ᴡᴀɪᴛ ᴏғ {e.x} sᴇᴄᴏɴᴅs")
-            await asyncio.sleep(e.x)
-        except Exception as e:
-            print(f"ғᴀɪʟᴇᴅ ᴛᴏ ʙᴀɴ {member.user.id}: {e}")
+    await message.reply_text(f"Banned {banned_count} members from {chat_title}")
 
-    if banned_count > 0:
-        destroyed_count += 1  # Increment if any members were banned
-        await update_stats(banned_count=banned_count, destroyed_count=destroyed_count)  # Update stats in MongoDB
+# ---------------- LOGS COMMAND ----------------
+@zeni.on_message(filters.command("logs") & filters.user(OWNER_ID))
+async def view_logs_command(client, message):
+    try:
+        with open('log', 'rb') as log_file:
+            await message.reply_document(document=log_file, caption="Here are the logs")
+    except Exception as e:
+        await message.reply_text(f"Error: {e}")
 
-        await message.reply_text(f"ᴀ ᴛᴏᴛᴀʟ ᴏғ {banned_count} ᴍᴇᴍʙᴇʀs ʜᴀᴠᴇ ʙᴀɴɴᴇᴅ.")
-    else:
-        await message.reply_text("ɴᴏ ᴍᴇᴍʙᴇʀs ᴡᴇʀᴇ ʙᴀɴɴᴇᴅ.")
+# ---------------- ALIVE COMMAND ----------------
+@zeni.on_message(filters.command("alive") & filters.private)
+async def alive_command(client, message):
+    await message.reply_text("ʏᴇs ɪ ᴀᴍ ᴀʟɪᴠᴇ ʙᴜᴅᴅʏ!")
 
-    left_members = await zeni.get_chat_members_count(chat_id)
-
-    executor_username = f"@{message.from_user.username}" if message.from_user.username else "None"
-
-    log_message = (
-        f"<b>ʙᴀɴ ᴘʀᴏᴄᴇss ᴄᴏᴍᴘʟᴇᴛᴇᴅ ɪɴ {chat_title}</b>\n\n"
-        f"<b>• ᴄʜᴀᴛ ɪᴅ :</b> <code>{chat_id}</code>\n"
-        f"<b>• ᴄʜᴀᴛ ᴜsᴇʀɴᴀᴍᴇ :</b> {chat_username}\n\n"
-        f"<b>• ʟᴇғᴛ ᴍᴇᴍʙᴇʀs :</b> <code>{left_members}</code>\n"
-        f"<b>• ᴍᴇᴍʙᴇʀs ʙᴇғᴏʀᴇ ʙᴀɴ :</b> {total_members}\n"
-        f"<b>• ᴛᴏᴛᴀʟ ʙᴀɴɴᴇᴅ ᴍᴇᴍʙᴇʀs :</b> {banned_count}\n\n"
-        f"<b>• ᴇxᴇᴄᴜᴛᴇᴅ ʙʏ :</b> {message.from_user.mention}\n"
-        f"<b>• ᴜsᴇʀɴᴀᴍᴇ :</b> {executor_username}"
-    )
+# ---------------- RUN BOT ----------------
+if __name__ == "__main__":
+    zeni.run()    )
 
     try:
         await zeni.send_message(chat_id=LOG_CHANNEL_ID, text=log_message)
