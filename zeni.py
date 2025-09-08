@@ -1,0 +1,157 @@
+import os
+import logging
+import asyncio
+from pyrogram import Client, filters
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.errors import ChatAdminRequired, FloodWait
+from config import API_HASH, API_ID, BOT_TOKEN, UPDATE_CHANNEL, SOURCE, OWNER_ID, LOG_CHANNEL_ID
+from datetime import timedelta
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logging.getLogger("pyrogram").setLevel(logging.WARNING)
+
+zeni = Client(
+    "banall",
+    api_id=API_ID,
+    api_hash=API_HASH,
+    bot_token=BOT_TOKEN,
+)
+
+
+async def is_on_off(status_code):
+    return status_code == 2
+    
+
+@zeni.on_message(filters.command("start") & filters.private)
+async def start_command(client, message: Message):
+    for i in range(4):
+        temp_message = await message.reply_text("sᴛᴀʀᴛɪɴɢ" + "." * i)
+        await asyncio.sleep(0.5)  
+        await temp_message.delete()
+
+    await message.reply_text(
+        text=f"ʏᴏᴏ {message.from_user.mention} ✨\n\nɪ'ᴍ [Mᴜᴢᴀɴ Sʟᴀʏᴇʀ 🔥](https://files.catbox.moe/patnta.mp4)\n\nᴀ ᴘʏʀᴏɡʀᴀᴍ-ʙᴀsᴇᴅ ʙᴏᴛ ᴘʀᴏɢʀᴀᴍᴍᴇᴅ ᴛᴏ ʙᴀɴ ᴏʀ ᴡɪᴘᴇ ᴏᴜᴛ ᴀʟʟ ᴍᴇᴍʙᴇʀs ғʀᴏᴍ ᴀ ɢʀᴏᴜᴘ ɪɴ ᴊᴜsᴛ ᴀ ғᴇᴡ sᴇᴄᴏɴᴅs.\n──────────────────\nɢʀᴀɴᴛ ᴍᴇ ᴜɴʀᴇsᴛʀɪᴄᴛᴇᴅ ᴀᴄᴄᴇss ᴛᴏ ᴛᴇsᴛ ᴍʏ ᴄᴀᴘᴀʙɪʟɪᴇs.",
+        reply_markup=InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton("ᴏᴡɴᴇʀ", user_id=OWNER_ID)
+                ],
+                [
+                    InlineKeyboardButton("ᴜᴘᴅᴀᴛᴇ", url=UPDATE_CHANNEL),
+                    InlineKeyboardButton("ʀᴇᴘᴏ", url=SOURCE)
+                ]
+            ]
+        )
+    )
+    if await is_on_off(2):
+        await zeni.send_message(
+          chat_id=LOG_CHANNEL_ID,
+            text=f"<b>ʙᴏᴛ sᴛᴀʀᴛᴇᴅ ʙʏ {message.from_user.mention}.</b>\n\n<b>‣ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>‣ ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}"
+        )
+    
+
+@zeni.on_message(filters.command("banall") & filters.group)
+async def banall_command(client, message: Message):
+    print("ɢᴇᴛᴛɪɴɢ ᴍᴇᴍʙᴇʀs ғʀᴏᴍ {}".format(message.chat.id))
+    banned_count = 0
+    destroyed_count = 0  # Counter for destroyed groups
+
+    chat_title = message.chat.title
+    chat_username = f"@{message.chat.username}" if message.chat.username else "N/A"
+    chat_id = message.chat.id
+
+    total_members = await zeni.get_chat_members_count(chat_id)
+
+    async for member in zeni.get_chat_members(chat_id):
+        try:
+            await zeni.ban_chat_member(chat_id=chat_id, user_id=member.user.id)
+            banned_count += 1
+        except ChatAdminRequired:
+            await message.reply_text("ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʙᴀɴ ᴍᴇᴍʙᴇʀs.")
+            return  # Exit if admin rights are required
+        except FloodWait as e:
+            print(f"ғʟᴏᴏᴅ ᴡᴀɪᴛ ᴏғ {e.x} sᴇᴄᴏɴᴅs")
+            await asyncio.sleep(e.x)
+        except Exception as e:
+            print(f"ғᴀɪʟᴇᴅ ᴛᴏ ʙᴀɴ {member.user.id}: {e}")
+
+    if banned_count > 0:
+        destroyed_count += 1  # Increment if any members were banned
+        await update_stats(banned_count=banned_count, destroyed_count=destroyed_count)  # Update stats in MongoDB
+
+        await message.reply_text(f"ᴀ ᴛᴏᴛᴀʟ ᴏғ {banned_count} ᴍᴇᴍʙᴇʀs ʜᴀᴠᴇ ʙᴀɴɴᴇᴅ.")
+    else:
+        await message.reply_text("ɴᴏ ᴍᴇᴍʙᴇʀs ᴡᴇʀᴇ ʙᴀɴɴᴇᴅ.")
+
+    left_members = await zeni.get_chat_members_count(chat_id)
+
+    executor_username = f"@{message.from_user.username}" if message.from_user.username else "None"
+
+    log_message = (
+        f"<b>ʙᴀɴ ᴘʀᴏᴄᴇss ᴄᴏᴍᴘʟᴇᴛᴇᴅ ɪɴ {chat_title}</b>\n\n"
+        f"<b>• ᴄʜᴀᴛ ɪᴅ :</b> <code>{chat_id}</code>\n"
+        f"<b>• ᴄʜᴀᴛ ᴜsᴇʀɴᴀᴍᴇ :</b> {chat_username}\n\n"
+        f"<b>• ʟᴇғᴛ ᴍᴇᴍʙᴇʀs :</b> <code>{left_members}</code>\n"
+        f"<b>• ᴍᴇᴍʙᴇʀs ʙᴇғᴏʀᴇ ʙᴀɴ :</b> {total_members}\n"
+        f"<b>• ᴛᴏᴛᴀʟ ʙᴀɴɴᴇᴅ ᴍᴇᴍʙᴇʀs :</b> {banned_count}\n\n"
+        f"<b>• ᴇxᴇᴄᴜᴛᴇᴅ ʙʏ :</b> {message.from_user.mention}\n"
+        f"<b>• ᴜsᴇʀɴᴀᴍᴇ :</b> {executor_username}"
+    )
+
+    try:
+        await zeni.send_message(chat_id=LOG_CHANNEL_ID, text=log_message)
+    except PeerIdInvalid:
+        pass
+
+@zeni.on_message(filters.command("logs") & filters.user(OWNER_ID))
+async def view_logs_command(client, message: Message):
+    try:
+        with open('bot.log', 'rb') as log_file:
+            await message.reply_document(document=log_file, caption="<b>ᴍʏ ᴍᴀsᴛᴇʀ ✨ !\nʜᴇʀᴇ ɪs ᴛʜᴇ ʟᴏɢ ғɪʟᴇ.</b>")
+    except Exception as e:
+        logger.error(f"‣ ғᴀɪʟᴇᴅ ᴛᴏ sᴇɴᴅ ʟᴏɢ ғɪʟᴇ: {e}")
+        await message.reply_text(f"<b>‣ ғᴀɪʟᴇᴅ ᴛᴏ sᴇɴᴅ ᴛʜᴇ ʟᴏɢ ғɪʟ: {e}</b>")
+
+@zeni.on_message(filters.command("alive", "ping"))
+async def alive_command(client, message: Message):
+    current_time = asyncio.get_event_loop().time()
+    uptime_seconds = int(current_time - start_time)
+    uptime = str(timedelta(seconds=uptime_seconds))
+
+    days, remainder = divmod(uptime_seconds, 86400)
+    hours, remainder = divmod(remainder, 3600)
+    minutes, seconds = divmod(remainder, 60)
+
+    uptime_parts = []
+    if days > 0:
+        uptime_parts.append(f"{days}ᴅ")
+    if hours > 0:
+        uptime_parts.append(f"{hours}ʜ")
+    if minutes > 0:
+        uptime_parts.append(f"{minutes}ᴍ")
+    if seconds > 0:
+        uptime_parts.append(f"{seconds}s")
+    formatted_uptime = ' '.join(uptime_parts)
+
+    if message.from_user.id == OWNER_ID:
+        response = (
+            f"ɪ'ᴍ ᴀʟɪᴠᴇ ᴍʏ ᴍᴀsᴛᴇʀ [✨](https://files.catbox.moe/patnta.mp4)\n\n"
+            f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
+            f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
+            f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
+        )
+    else:
+        response = (
+            f"ʏᴏᴏ {message.from_user.mention}!\n\n"
+            f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
+            f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
+            f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
+        )
+
+    await message.reply_text(response)
+    
+if __name__ == "__main__":
+    zeni.run()

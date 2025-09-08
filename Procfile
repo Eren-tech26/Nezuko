@@ -1,0 +1,1 @@
+worker: python zeni.py
