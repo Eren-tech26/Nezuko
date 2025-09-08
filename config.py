@@ -6,6 +6,6 @@ LOG_CHANNEL_ID = -1002864843003
 
 BOT_TOKEN = "8152088850:AAFDyj31aMOo2LIRjY4BWeAtzhbhAup1DWE"
 
-SOURCE = "https://t.me/eren_aethonix
-UPDATE_CHANNEL = "https://t.me/Veron_bots
+SOURCE = "https://t.me/eren_aethonix"
+UPDATE_CHANNEL = "https://t.me/Veron_bots"
 
