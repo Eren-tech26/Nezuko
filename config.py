@@ -1,11 +1,11 @@
 API_ID = 21968859
 API_HASH = "21a59d21687f01d448530ee88a26b1eb"
 
-OWNER_ID = 5268691896
-LOG_CHANNEL_ID = -1002330868212 
+OWNER_ID = 6356050482
+LOG_CHANNEL_ID = -1002864843003 
 
-BOT_TOKEN = "8163155281:AAGeCyko6Grmt1QofqPxJC0jREmeXtxtw5E"
+BOT_TOKEN = "8152088850:AAFDyj31aMOo2LIRjY4BWeAtzhbhAup1DWE"
 
-SOURCE = "https://t.me/about_zenuu"
-UPDATE_CHANNEL = "https://t.me/hxh_bot_support"
+SOURCE = "https://t.me/eren_aethonix
+UPDATE_CHANNEL = "https://t.me/Veron_bots
 
