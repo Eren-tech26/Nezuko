@@ -85,26 +85,28 @@ async def alive_conv(client, message):
 
 # RUN BOT
 if __name__ == "__main__":
-    zeni.run()    if seconds > 0:
-        uptime_parts.append(f"{seconds}s")
-    formatted_uptime = ' '.join(uptime_parts)
+    if seconds > 0:
+    uptime_parts.append(f"{seconds}s")
 
-    if message.from_user.id == OWNER_ID:
-        response = (
-            f"ɪ'ᴍ ᴀʟɪᴠᴇ ᴍʏ ᴍᴀsᴛᴇʀ [✨](https://files.catbox.moe/patnta.mp4)\n\n"
-            f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
-            f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
-            f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
-        )
-    else:
-        response = (
-            f"ʏᴏᴏ {message.from_user.mention}!\n\n"
-            f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
-            f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
-            f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
-        )
+formatted_uptime = ' '.join(uptime_parts)
 
-    await message.reply_text(response)
-    
+if message.from_user.id == OWNER_ID:
+    response = (
+        f"ɪ'ᴍ ᴀʟɪᴠᴇ ᴍʏ ᴍᴀsᴛᴇʀ [✨](https://files.catbox.moe/patnta.mp4)\n\n"
+        f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
+        f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
+        f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
+    )
+else:
+    response = (
+        f"ʏᴏᴏ {message.from_user.mention}!\n\n"
+        f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
+        f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
+        f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
+    )
+
+await message.reply_text(response)
+
+# This must always be at the very end
 if __name__ == "__main__":
     zeni.run()
