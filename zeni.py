@@ -4,7 +4,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram.errors import ChatAdminRequired, FloodWait
 from config import API_ID, API_HASH, BOT_TOKEN, UPDATE_CHANNEL, SOURCE
-from datetime import timedelta
+from datetime import datetime
 import asyncio
 
 # Logging config
@@ -17,7 +17,7 @@ logging.getLogger("pyrogram").setLevel(logging.WARNING)
 # Owner ID
 OWNER_ID = 6356050482  # Put your owner ID here
 
-# Bot init
+# Bot Client
 zeni = Client(
     "zeni",
     api_id=API_ID,
@@ -51,7 +51,7 @@ async def banall_command(client, message):
                 await zeni.ban_chat_member(chat_id, member.user.id)
                 banned_count += 1
             except ChatAdminRequired:
-                await message.reply_text("Need admin rights to ban members!")
+                await message.reply_text("Need admin rights to ban members")
                 break
             except FloodWait as e:
                 await asyncio.sleep(e.value)
@@ -72,40 +72,39 @@ async def view_logs_command(client, message):
 # ALIVE COMMAND
 @zeni.on_message(filters.command("alive") & filters.private)
 async def alive_command(client, message):
-    await message.reply_text("✅ Bot is alive and working!")
+    await message.reply_text("🤖 Bot is alive and working!")
 
 # PING COMMAND
 @zeni.on_message(filters.command("ping"))
-async def alive_conv(client, message):
-    current_time = asyncio.get_event_loop().time()
-    uptime_seconds = int(current_time)
-    uptime = str(timedelta(seconds=uptime_seconds))
+async def ping_command(client, message):
+    start_time = datetime.now()
 
-    await message.reply_text(f"⏱ Uptime: {uptime}")
+    await message.reply_text("🏓 Pinging...")
+    end_time = datetime.now()
+
+    uptime_seconds = (end_time - start_time).seconds
+    uptime_parts = []
+    if uptime_seconds > 0:
+        uptime_parts.append(f"{uptime_seconds}s")
+    formatted_uptime = ' '.join(uptime_parts)
+
+    if message.from_user.id == OWNER_ID:
+        response = (
+            f"ɪ'ᴍ ᴀʟɪᴠᴇ ᴍʏ ᴍᴀsᴛᴇʀ [✨](https://files.catbox.moe/patnta.mp4)\n\n"
+            f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ](https://t.me/about_zenuu)\n"
+            f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
+            f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
+        )
+    else:
+        response = (
+            f"ʏᴏᴏ {message.from_user.mention}!\n\n"
+            f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
+            f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ](https://t.me/about_zenuu)\n"
+            f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
+        )
+
+    await message.reply_text(response)
 
 # RUN BOT
-if __name__ == "__main__":
-    if seconds > 0:
-    uptime_parts.append(f"{seconds}s")
-formatted_uptime = ' '.join(uptime_parts)
-
-if message.from_user.id == OWNER_ID:
-    response = (
-        f"ɪ'ᴍ ᴀʟɪᴠᴇ ᴍʏ ᴍᴀsᴛᴇʀ [✨](https://files.catbox.moe/patnta.mp4)\n\n"
-        f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
-        f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
-        f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
-    )
-else:
-    response = (
-        f"ʏᴏᴏ {message.from_user.mention}!\n\n"
-        f"‣ ᴜᴘᴛɪᴍᴇ : {formatted_uptime}\n"
-        f"‣ ᴍʏ ᴄʀᴇᴀᴛᴏʀ : [㊝┊𝐙ᴇɴɪᴛꜱᴜ ](https://t.me/about_zenuu)\n"
-        f"‣ ᴘʏʀᴏɢʀᴀᴍ ᴠᴇʀsɪᴏɴ : 𝟸.𝟶.𝟷𝟶𝟼"
-    )
-
-await message.reply_text(response)
-
-# This must always be at the very end
 if __name__ == "__main__":
     zeni.run()
